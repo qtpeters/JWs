@@ -20,11 +20,9 @@ public class Main {
 	private Socket socket;
 	
 	public Main( final String [] args ) {
-		if ( args.length > 0 ) {
-			this.port = Tools.cast( args[0], DEFAULT_PORT );
-		} else {			
-			this.port = DEFAULT_PORT;
-		}
+		this.port = args.length > 0 
+		? Tools.cast( args[0], DEFAULT_PORT ) 
+		: DEFAULT_PORT;
 	}
 	
 	public void init() {
