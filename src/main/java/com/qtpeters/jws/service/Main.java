@@ -1,9 +1,6 @@
 package com.qtpeters.jws.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,9 +12,18 @@ public class Main {
 	private static final Logger logger = LogManager.getLogger( Main.class ); 
 	private static final int DEFAULT_PORT = 42069;
 	
+	private boolean running;
 	private int port;
-	private ServerSocket serverSocket;
-	private Socket socket;
+	private Processor processor;
+	
+	private void setShutdownThread( final Main m ) {
+		Runtime.getRuntime().addShutdownHook( new Thread() {
+			@Override public void run() {
+				logger.info( "Shutting down JWs!" );
+				m.shutdown();
+			}
+		});
+	}
 	
 	public Main( final String [] args ) {
 		this.port = args.length > 0 
@@ -25,17 +31,20 @@ public class Main {
 		: DEFAULT_PORT;
 	}
 	
-	public void init() {
-		
+	public void start() {
 		logger.info( "Initalizing JWs" );
+		this.processor = new Processor( port );
+		this.processor.startup();
+		this.running = true;
+		setShutdownThread( this );
 		
-		try {
-			this.serverSocket = new ServerSocket( port );
-			this.socket = serverSocket.accept(); // New Thread here
-			InputStream is = this.socket.getInputStream();
-		} catch ( IOException e ) {
-			logger.fatal( "Unable to initialize server socket, exiting..." );
-			System.exit( 1 );
+		while ( this.running ) {
+			Tools.sleep( 15, TimeUnit.SECONDS );
 		}
+	}
+	
+	public void shutdown() {
+		this.running = false;
+		this.processor.shutdown();
 	}
 }
