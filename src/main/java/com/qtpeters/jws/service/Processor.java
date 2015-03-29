@@ -4,8 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -19,9 +22,10 @@ public class Processor implements Runnable {
 	private static Logger logger = LogManager.getLogger( Processor.class );
 	private final Executor exe = Executors.newSingleThreadExecutor();
 	
-	private int port;
 	private ServerSocket serverSocket;
 	private Socket socket;
+	
+	private int port;
 	private boolean running;
 	
 	public Processor( int port ) {
@@ -46,29 +50,20 @@ public class Processor implements Runnable {
 	}
 	
 	public void run() {
+		
 		logger.info( "Processor running" );
 		this.socket = Tools.accept( serverSocket );
 		this.running = true;
+		
+		BufferedReader reader = Tools.getReader( this.socket );
+		PrintWriter writer = Tools.getWriter( this.socket );
+		
 		while ( this.running ) {
-			InputStream is = Tools.getInputStream( this.socket );
-			if ( is != null ) {
-				InputStreamReader isr = new InputStreamReader( is );
-				BufferedReader br = new BufferedReader( isr );
-				String line = "";
-				while ( ( line = Tools.getLine( br) ) != null ) {
-					if ( ! line.equals( "" ) ) {
-						logger.info( "LINE: " + line );
-					} else {
-						logger.info( "Empty string found, finished" );
-						System.exit( 0 );
-					}
-				}
 //				byte [] packet = Tools.getPacket( is );
 //				if ( packet != null ) {
 //					logger.info( "PACKET RECEIVED: LENGTH: " + packet.length );
 //					System.exit( 0 );
 //				}
-			}
 		}
 	}
 }

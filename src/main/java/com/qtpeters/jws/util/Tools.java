@@ -3,6 +3,8 @@ package com.qtpeters.jws.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
@@ -48,19 +50,6 @@ public class Tools {
 		}
 		
 		return socket;
-	}
-
-	public static InputStream getInputStream(Socket socket) {
-		
-		InputStream is = null;
-		
-		try {
-			is = socket.getInputStream();
-		} catch ( IOException ioe ) {
-			logger.error( "Unable to acquire inputstream" );
-		}
-		
-		return is;
 	}
 
 	public static byte[] getPacket(InputStream is) {
@@ -112,5 +101,31 @@ public class Tools {
 		}
 		
 		return line;
+	}
+	
+	public static BufferedReader getReader(Socket socket) {
+		
+		BufferedReader br = null;
+		
+		try ( InputStream is = socket.getInputStream();
+			  InputStreamReader isr = new InputStreamReader( is ) ) {
+			br = new BufferedReader( isr );
+		} catch ( IOException ioe ) {
+			logger.error( "Unable to get input stream from socket." );
+		}
+		
+		return br;
+	}
+	
+	public static PrintWriter getWriter( Socket socket ) {
+
+		PrintWriter writer = null;
+		try {		
+			writer = new PrintWriter( socket.getOutputStream() );
+		} catch ( IOException ioe ) {
+			logger.error( "Unable to get output stream from socket." );
+		}
+		
+		return writer;
 	}
 }
