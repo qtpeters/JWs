@@ -2,7 +2,9 @@ package com.qtpeters.jws.service;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
@@ -61,7 +63,7 @@ public class HandshakeManager {
 		);
 		
 		if ( ! ( version >= 1.1f ) ) {
-			throw new HttpVersionException( "HTTP version MUST be at least 1.1" );
+			throw new HttpVersionException( "HTTP version must be at least 1.1" );
 		};
 		
 	}
@@ -69,6 +71,23 @@ public class HandshakeManager {
 	private void validateHeaders( final Map<String, String> headers ) 
 			throws HandshakeException {
 		
+		List<String> manditoryHeaders = new ArrayList<>();
+		manditoryHeaders.add( "Host" );
+		manditoryHeaders.add( "Upgrade" );
+		manditoryHeaders.add( "Origin" );
+		manditoryHeaders.add( "Connection" );
+		manditoryHeaders.add( "Sec-WebSocket-Key" );
+		manditoryHeaders.add( "Sec-WebSocket-Version" );
+		
+		for ( String header : manditoryHeaders ) {
+			if ( ! headers.containsKey( header ) ) {
+				throw new HandshakeException( String.format( "No %s header.", header ) );
+			}
+		}
+		
+		if ( headers.get( "Upgrade" ).matches( ".*websocket.*" ) ) {			
+			throw new HandshakeException( "Upgrade field doesn't contain 'websocket'" );
+		}
 	}
 	
 	Map<RequestLineToken, String> getRequestLine() throws HandshakeException 	{
