@@ -15,6 +15,10 @@ import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.qtpeters.jws.service.error.HandshakeException;
+import com.qtpeters.jws.service.error.HttpVersionException;
+import com.qtpeters.jws.service.error.ParseException;
+import com.qtpeters.jws.service.error.RequestMethodException;
 import com.qtpeters.jws.util.Tools;
 
 public class Processor implements Runnable {
@@ -58,7 +62,22 @@ public class Processor implements Runnable {
 		BufferedReader reader = Tools.getReader( this.socket );
 		PrintWriter writer = Tools.getWriter( this.socket );
 		
+		HandshakeManager hm = new HandshakeManager( reader, writer );
+
+		try {
+			hm.execute();
+		} catch ( RequestMethodException rme ) {
+			rme.printStackTrace(); // TODO Do something here.
+		} catch ( HttpVersionException hve ) {
+			hve.printStackTrace(); // TODO Do something here.
+		} catch ( ParseException pe ) {
+			pe.printStackTrace(); // TODO Do something here.
+		} catch ( HandshakeException he ) {
+			he.printStackTrace(); // TODO Do something here.
+		}
+		
 		while ( this.running ) {
+			
 //				byte [] packet = Tools.getPacket( is );
 //				if ( packet != null ) {
 //					logger.info( "PACKET RECEIVED: LENGTH: " + packet.length );

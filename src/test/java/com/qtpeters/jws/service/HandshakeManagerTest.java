@@ -13,35 +13,24 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import com.qtpeters.jws.service.HandshakeManager.RequestLineToken;
-import com.qtpeters.jws.service.error.ParseException;
+import com.qtpeters.jws.service.error.HandshakeException;
+import com.qtpeters.jws.service.util.Data;
 
 public class HandshakeManagerTest {
 
 	protected BufferedReader reader;
 	protected HandshakeManager hm;
 	
-	protected String getGoodHeader() {
-		StringBuilder goodHeader = new StringBuilder();
-		goodHeader.append( "GET /whatever HTTP/1.1\r\n" );
-		goodHeader.append( "Host: example.com:8000\r\n" );
-		goodHeader.append( "Upgrade: websocket\r\n" );
-		goodHeader.append( "Connection: Upgrade\r\n" );
-		goodHeader.append( "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n" );
-		goodHeader.append( "Sec-WebSocket-Version: 13\r\n" );
-		
-		return goodHeader.toString();
-	}
-	
 	@Before
 	public void setUp() {
-		InputStream is = new ByteArrayInputStream( getGoodHeader().getBytes() );
+		InputStream is = new ByteArrayInputStream( Data.getGoodHeader().getBytes() );
 		InputStreamReader isr = new InputStreamReader( is );
 		this.reader = new BufferedReader( isr ); 
 		this.hm = new HandshakeManager( this.reader, null );
 	}
 	
 	@Test
-	public void getRequestLineTest() throws ParseException {
+	public void getRequestLineTest() throws HandshakeException {
 		Map<RequestLineToken, String> reqLineMap = hm.getRequestLine();
 		assertEquals( "GET", reqLineMap.get( RequestLineToken.METHOD ) );
 		assertEquals( "/whatever", reqLineMap.get( RequestLineToken.REQ_URI ) );

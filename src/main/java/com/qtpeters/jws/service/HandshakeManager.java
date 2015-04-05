@@ -9,7 +9,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.qtpeters.jws.service.error.HandshakeException;
+import com.qtpeters.jws.service.error.HttpVersionException;
 import com.qtpeters.jws.service.error.ParseException;
+import com.qtpeters.jws.service.error.RequestMethodException;
 import com.qtpeters.jws.util.Tools;
 
 // TODO Need to make this an impl
@@ -34,18 +36,42 @@ public class HandshakeManager {
 	
 	public void execute() throws HandshakeException {
 		
-		Map<RequestLineToken, String> requestLineMap = null;
+		Map<RequestLineToken, String> requestLineMap = getRequestLine();
+		validateRequest( requestLineMap );
 		
-		try {
-			requestLineMap = getRequestLine();
-		} catch ( ParseException pe ) {
-			throw new HandshakeException( "Unable to parse request line.", pe );
-		}
+		// TODO Do something with this URI
+		String uri = requestLineMap.get( RequestLineToken.REQ_URI );
 		
 		Map<String, String> requestHeaders = getRequestHeaders();
+		validateHeaders( requestHeaders );
+		
+		// TODO Process headers
 	}
 	
-	Map<RequestLineToken, String> getRequestLine() throws ParseException 	{
+	private void validateRequest( Map<RequestLineToken, String> requestLineMap ) 
+			throws HandshakeException {
+		
+		String method = requestLineMap.get( RequestLineToken.METHOD ); 
+		if ( ! method.equalsIgnoreCase( "GET" ) ) {
+			throw new RequestMethodException( "Request must be GET." );
+		};
+		
+		float version = Float.valueOf( 
+			requestLineMap.get( RequestLineToken.HTTP_VERSION ) 
+		);
+		
+		if ( ! ( version >= 1.1f ) ) {
+			throw new HttpVersionException( "HTTP version MUST be at least 1.1" );
+		};
+		
+	}
+	
+	private void validateHeaders( final Map<String, String> headers ) 
+			throws HandshakeException {
+		
+	}
+	
+	Map<RequestLineToken, String> getRequestLine() throws HandshakeException 	{
 		
 		Map<RequestLineToken, String> reqLineParts = new HashMap<>();
 		String requestLine = Tools.getLine( this.reader );
